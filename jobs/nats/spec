@@ -78,3 +78,8 @@ properties:
     description: "Certificate for cluster-internal traffic. In PEM format."
   nats.internal.tls.private_key:
     description: "Private key for cluster-internal traffic. In PEM format."
+
+  nats.net:
+    decription: "Client lisenting interface, defaults to spec.address"
+  nats.cluster_host:
+    decription: "Clustering lisenting interface, defaults to spec.address"
