@@ -41,7 +41,7 @@
   end
 %>
 
-net: "<%= spec.address %>"
+net: "<%= p("nats.net", spec.address) %>"
 port: <%= p("nats.port") %>
 prof_port: <%= p("nats.prof_port") %>
 monitor_port: <%= p("nats.monitor_port") %>
@@ -72,7 +72,7 @@ tls {
 }
 
 cluster {
-  host: "<%= spec.address %>"
+  host: "<%= p("nats.cluster_host", spec.address) %>"
   port: <%= p("nats.cluster_port") %>
 
   authorization {
