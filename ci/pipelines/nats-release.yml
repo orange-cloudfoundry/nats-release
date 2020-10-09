@@ -49,7 +49,7 @@ resources:
 - name: nats-release-master
   type: git
   source:
-    branch: master
+    branch: release
     private_key: ((read_write_deploy_key.private_key))
     uri: git@github.com:cloudfoundry/nats-release.git
 
@@ -62,14 +62,14 @@ resources:
 - name: networking-oss-deployments
   type: git
   source:
-    branch: master
+    branch: main
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/networking-oss-deployments.git
 
 - name: we-dont-use-vars-files
   type: git
   source:
-    branch: master
+    branch: main
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/networking-oss-deployments.git
 
@@ -84,7 +84,6 @@ resources:
   source:
     branch: master
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
-    tag_filter: v10.*
 
 - name: weekly
   type: time
@@ -100,6 +99,8 @@ jobs:
     - get: golang-release-latest
       trigger: true
     - get: nats-release-ci
+      params:
+        submodules: none
   - task: upgrade
     file: nats-release-ci/ci/tasks/upgrade-package-in-release/task.yml
     params:
@@ -119,13 +120,15 @@ jobs:
   - put: nats-release
     params:
       repository: modified-release
+      rebase: true
 
 - name: smoke-tests-and-CATs
   plan:
   - in_parallel:
     - do:
       - get: routing-release-ci
-        params: {submodules: none}
+        params:
+          submodules: none
       - task: claim-cf-deployment-environment
         file: routing-release-ci/ci/tasks/claim-cf-deployment-environment/task.yml
         tags:
@@ -151,13 +154,9 @@ jobs:
   - task: merge-ops-files
     file: routing-release-ci/ci/tasks/merge-ops-files/task.yml
     input_mapping:
-      source1: nats-release
+      source1: nats-release-ci
     params:
       SOURCE1_DIR: example-manifests/ops-files
-  - task: fetch-our-envs-manifest
-    file: routing-release-ci/ci/tasks/fetch-toolsmiths-manifest/task.yml
-    input_mapping:
-      toolsmiths-metadata-dir: cf-environment
   - task: redeploy-nats-release
     file: cf-deployment-concourse-tasks/bosh-deploy-with-created-release/task.yml
     input_mapping:
@@ -165,15 +164,13 @@ jobs:
       release: nats-release
       ops-files: merged-operations
       vars-files: we-dont-use-vars-files
-      cf-deployment: our-envs-manifest
     params:
-      MANIFEST_FILE: manifest.yml
       OPS_FILES: |
-        enable_nats_tls_for_cf.yml
         add-lb-ca-cert.yml
         use-compiled-releases.yml
         scale-for-cats.yml
         smoke-tests.yml
+        disable-iso-seg-smoke-tests.yml
   - task: run-smoke-tests
     file: nats-release-ci/ci/tasks/run-errand-nats-release/task.yml
     params:
@@ -218,8 +215,16 @@ jobs:
       trigger: true
       passed: [smoke-tests-and-CATs]
     - get: nats-release-ci
+      params:
+        submodules: none
   - task: build-release-notes
     file: nats-release-ci/ci/tasks/build-release-notes/task.yml
+    input_mapping:
+      master-release: nats-release
+    params:
+      TRACKER_API_TOKEN: ((tracker_api_token))
+  - task: print-bosh-job-spec-diff
+    file: nats-release-ci/ci/tasks/print-bosh-job-spec-diff/task.yml
     input_mapping:
       master-release: nats-release
 
@@ -229,6 +234,8 @@ jobs:
   plan:
   - in_parallel:
     - get: nats-release-ci
+      params:
+        submodules: none
     - get: nats-release
       passed: [ship-what]
     - get: nats-release-master
@@ -238,6 +245,7 @@ jobs:
       release-repo-master: nats-release-master
       release-repo: nats-release
     params:
+      MASTER_BRANCH: release
       RELEASE_NAME: nats
       GCP_NATS_BLOBSTORE_SERVICE_ACCOUNT_KEY: ((gcp_nats_blobstore_service_account_key))
   - put: nats-release-master
@@ -250,6 +258,8 @@ jobs:
     input_mapping:
       release-repo-master: nats-release-master
       release-repo: nats-release
+    params:
+      MASTER_BRANCH: release
   - put: nats-release
     params:
       repository: final-release-repo

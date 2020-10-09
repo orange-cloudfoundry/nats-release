@@ -10,13 +10,8 @@ inputs:
   - name: nats-release-ci
   - name: master-release
 
-outputs:
-  - name: release-notes
-
 run:
-  path: nats-release-ci/ci/tasks/build-release-notes/task
+  path: nats-release-ci/ci/tasks/print-bosh-job-spec-diff/task
 
 params:
   SOURCE_DIR: master-release
-  OUTPUT_DIR: release-notes
-  TRACKER_API_TOKEN:
