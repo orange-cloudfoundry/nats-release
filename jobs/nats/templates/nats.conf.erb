@@ -57,6 +57,7 @@ authorization {
 }
 
 cluster {
+  no_advertise: true
   host: "<%= p("nats.cluster_host", spec.address) %>"
   port: <%= p("nats.cluster_port") %>
 
