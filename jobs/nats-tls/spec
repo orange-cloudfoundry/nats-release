@@ -30,6 +30,7 @@ provides:
   - nats.monitor_port
   - nats.cluster_port
   - nats.external.tls.ca
+  - nats.write_deadline
 
 consumes:
 - name: nats
@@ -78,6 +79,9 @@ properties:
     decription: "Client lisenting interface, defaults to spec.address"
   nats.cluster_host:
     decription: "Clustering lisenting interface, defaults to spec.address"
+  nats.write_deadline:
+    description: "Maximum number of seconds the server will block when writing. Once this threshold is exceeded the connection will be closed and the client will be considered as Slow Consumer."
+    default: "2s"
 
   nats.external.tls.ca:
     description: "Certificate of the CA for publisher/subscriber traffic. In PEM format."
