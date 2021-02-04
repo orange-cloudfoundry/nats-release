@@ -69,6 +69,11 @@ properties:
   nats.no_advertise:
     description: "When configured to true, this nats server will not be advertised to any nats clients. This is defaulted to false for backwards compatability."
     default: false
+  nats.net:
+    decription: "Client lisenting interface, defaults to spec.address"
+  nats.cluster_host:
+    decription: "Clustering lisenting interface, defaults to spec.address"
+
   nats.internal.tls.enabled:
     description: "Enable mutually authenticated TLS for NATS cluster-internal traffic."
     default: false
