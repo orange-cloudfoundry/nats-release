@@ -24,3 +24,4 @@ bosh-lite/deployments/*
 bosh-lite/tmp/*
 pkg
 consul-certs/
+*.tgz
